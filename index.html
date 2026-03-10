@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PK Bookclub Ratings</title>
+  <title>PK Bookclub</title>
   <meta name="description" content="Our bookclub ratings — we all gave 7, but out of very different scales.">
   <!-- Open Graph / Facebook, Slack, etc. -->
   <meta property="og:type" content="website">
@@ -83,7 +83,11 @@
       text-align: center;
     }
 
-    .mode-toggle {
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 1rem 1.5rem;
       font-size: 0.85rem;
       color: var(--muted);
       margin: -0.5rem 0 1.75rem 0;
@@ -100,6 +104,22 @@
       accent-color: var(--fill);
       width: 1rem;
       height: 1rem;
+    }
+
+    .sort-control {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .sort-control select {
+      font: inherit;
+      color: var(--ink);
+      background: var(--paper);
+      border: 1px solid var(--track);
+      border-radius: 4px;
+      padding: 0.25rem 0.5rem;
+      cursor: pointer;
     }
 
     .book-number {
@@ -194,12 +214,22 @@
   </style>
 </head>
 <body>
-  <h1 class="page-title">PK Bookclub Ratings</h1>
-  <div class="mode-toggle">
-    <label for="mode-toggle">
-      <input type="checkbox" id="mode-toggle">
-      <span>Sane mode</span>
-    </label>
+  <h1 class="page-title">PK Bookclub</h1>
+  <div class="controls">
+    <div class="sort-control">
+      <label for="sort-ratings">Sort ratings:</label>
+      <select id="sort-ratings">
+        <option value="discussion">Order of discussion</option>
+        <option value="alpha">Alphabetically</option>
+        <option value="low-high">Low to high</option>
+      </select>
+    </div>
+    <div class="mode-toggle">
+      <label for="mode-toggle">
+        <input type="checkbox" id="mode-toggle">
+        <span>Sane mode</span>
+      </label>
+    </div>
   </div>
   <div id="books"></div>
 
@@ -283,7 +313,22 @@
       },
     ];
 
-    let saneMode = false;
+    const STORAGE_KEY_SANE = 'bookclub-sane';
+    const STORAGE_KEY_SORT = 'bookclub-sort';
+
+    let saneMode = (() => {
+      try {
+        const v = localStorage.getItem(STORAGE_KEY_SANE);
+        return v === 'true';
+      } catch (_) { return false; }
+    })();
+    let sortMode = (() => {
+      try {
+        const v = localStorage.getItem(STORAGE_KEY_SORT);
+        if (v === 'alpha' || v === 'low-high' || v === 'discussion') return v;
+      } catch (_) {}
+      return 'discussion';
+    })();
 
     function getWidths(score, max, sane) {
       if (sane) {
@@ -308,8 +353,19 @@
       return n > 0 ? book.ratings.reduce((sum, { score, max }) => sum + score / max, 0) / n : 0;
     }
 
+    function getSortedRatings(ratings) {
+      const copy = [...ratings];
+      if (sortMode === 'alpha') {
+        copy.sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }));
+      } else if (sortMode === 'low-high') {
+        copy.sort((a, b) => (a.score / a.max) - (b.score / b.max));
+      }
+      return copy;
+    }
+
     function renderBook(book, sane, rank) {
-      const rows = book.ratings.map(({ name, score, max }) => {
+      const ratingsToShow = getSortedRatings(book.ratings);
+      const rows = ratingsToShow.map(({ name, score, max }) => {
         const { barWidth, fillWidth } = getWidths(score, max, sane);
         return `
           <div class="rating-row">
@@ -373,6 +429,17 @@
       modeToggle.checked = saneMode;
       modeToggle.addEventListener('change', () => {
         saneMode = modeToggle.checked;
+        try { localStorage.setItem(STORAGE_KEY_SANE, String(saneMode)); } catch (_) {}
+        renderAll();
+      });
+    }
+
+    const sortSelect = document.getElementById('sort-ratings');
+    if (sortSelect) {
+      sortSelect.value = sortMode;
+      sortSelect.addEventListener('change', () => {
+        sortMode = sortSelect.value;
+        try { localStorage.setItem(STORAGE_KEY_SORT, sortMode); } catch (_) {}
         renderAll();
       });
     }
