@@ -157,6 +157,7 @@
       align-items: center;
       gap: 1rem;
       margin-bottom: 0.85rem;
+      transition: transform 0.35s ease-out;
     }
 
     .name {
@@ -177,6 +178,7 @@
       border-radius: 999px;
       overflow: hidden;
       margin-left: auto;
+      transition: width 0.35s ease-out;
     }
 
     .meter-fill {
@@ -188,6 +190,7 @@
       background: var(--fill);
       border-radius: 999px;
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.15);
+      transition: width 0.35s ease-out;
     }
 
     .value {
@@ -383,10 +386,10 @@
         const { barWidth, fillWidth } = getWidths(score, max, sane);
         const isSuggester = suggestedBy && name === suggestedBy;
         return `
-          <div class="rating-row">
+          <div class="rating-row" data-name="${name}">
             <span class="name">${name}${isSuggester ? ' ✦' : ''}</span>
             <div class="meter-cell">
-              <div class="meter-wrap" style="--bar-width: ${barWidth}px; --score-width: ${fillWidth}px;">
+              <div class="meter-wrap" data-score="${score}" data-max="${max}" style="--bar-width: ${barWidth}px; --score-width: ${fillWidth}px;">
                 <div class="meter-fill"></div>
               </div>
             </div>
@@ -408,7 +411,7 @@
         <div class="rating-row average-row">
           <span class="name">Average${medalHtml}</span>
           <div class="meter-cell">
-            <div class="meter-wrap" style="--bar-width: ${avgBarWidth}px; --score-width: ${avgFillWidth}px;">
+            <div class="meter-wrap" data-mean-fraction="${meanFraction}" style="--bar-width: ${avgBarWidth}px; --score-width: ${avgFillWidth}px;">
               <div class="meter-fill"></div>
             </div>
           </div>
@@ -426,8 +429,8 @@
       `;
     }
 
-    function renderAll() {
-      const sane = saneMode;
+    function renderAll(sane) {
+      const useSane = sane !== undefined ? sane : saneMode;
       const withMean = books.map(book => ({ book, mean: getBookMeanFraction(book) }));
       withMean.sort((a, b) => b.mean - a.mean);
       const rankByBook = new Map();
@@ -435,17 +438,114 @@
         if (i < 3) rankByBook.set(book, i + 1);
       });
       document.getElementById('books').innerHTML = books
-        .map(book => renderBook(book, sane, rankByBook.get(book)))
+        .map(book => renderBook(book, useSane, rankByBook.get(book)))
         .join('');
+    }
+
+    function reorderAndAnimate() {
+      const sections = document.querySelectorAll('.book-section');
+      const duration = 350;
+
+      sections.forEach((section, bookIndex) => {
+        const book = books[bookIndex];
+        if (!book) return;
+        const ratingsEl = section.querySelector('.ratings');
+        if (!ratingsEl) return;
+        const rows = Array.from(ratingsEl.querySelectorAll('.rating-row:not(.average-row)'));
+        const averageRow = ratingsEl.querySelector('.rating-row.average-row');
+        if (!rows.length || !averageRow) return;
+
+        const sortedRatings = getSortedRatings(book.ratings);
+        const sortedNames = sortedRatings.map((r) => r.name);
+        const nameToRow = new Map();
+        rows.forEach((row) => {
+          const name = row.getAttribute('data-name');
+          if (name) nameToRow.set(name, row);
+        });
+        const orderedRows = sortedNames.map((name) => nameToRow.get(name)).filter(Boolean);
+        if (orderedRows.length === 0) return;
+
+        const firstRects = new Map();
+        rows.forEach((row) => {
+          const name = row.getAttribute('data-name');
+          if (name) firstRects.set(name, row.getBoundingClientRect());
+        });
+
+        averageRow.remove();
+        orderedRows.forEach((row) => ratingsEl.appendChild(row));
+        ratingsEl.appendChild(averageRow);
+
+        orderedRows.forEach((row) => {
+          const name = row.getAttribute('data-name');
+          const first = firstRects.get(name);
+          const last = row.getBoundingClientRect();
+          if (first) {
+            const deltaY = first.top - last.top;
+            row.style.transition = 'none';
+            row.style.transform = `translateY(${deltaY}px)`;
+          }
+        });
+      });
+
+      document.body.offsetHeight;
+
+      sections.forEach((section, bookIndex) => {
+        const book = books[bookIndex];
+        if (!book) return;
+        const ratingsEl = section.querySelector('.ratings');
+        if (!ratingsEl) return;
+        const rows = Array.from(ratingsEl.querySelectorAll('.rating-row:not(.average-row)'));
+        const sortedNames = getSortedRatings(book.ratings).map((r) => r.name);
+        const nameToRow = new Map();
+        rows.forEach((row) => {
+          const name = row.getAttribute('data-name');
+          if (name) nameToRow.set(name, row);
+        });
+        const orderedRows = sortedNames.map((name) => nameToRow.get(name)).filter(Boolean);
+
+        orderedRows.forEach((row) => {
+          row.style.transition = `transform ${duration}ms ease-out`;
+          row.style.transform = 'translateY(0)';
+        });
+      });
+    }
+
+    function updateAllBarStyles() {
+      document.querySelectorAll('.meter-wrap').forEach((wrap) => {
+        const fill = wrap.querySelector('.meter-fill');
+        if (!fill) return;
+        const meanFraction = wrap.getAttribute('data-mean-fraction');
+        if (meanFraction !== null) {
+          const m = parseFloat(meanFraction);
+          const barWidth = SANE_TOTAL_WIDTH;
+          const fillWidth = m * barWidth;
+          wrap.style.setProperty('--bar-width', barWidth + 'px');
+          wrap.style.setProperty('--score-width', fillWidth + 'px');
+          return;
+        }
+        const score = parseFloat(wrap.getAttribute('data-score'));
+        const max = parseFloat(wrap.getAttribute('data-max'));
+        if (Number.isFinite(score) && Number.isFinite(max)) {
+          const { barWidth, fillWidth } = getWidths(score, max, saneMode);
+          wrap.style.setProperty('--bar-width', barWidth + 'px');
+          wrap.style.setProperty('--score-width', fillWidth + 'px');
+        }
+      });
     }
 
     const modeToggle = document.getElementById('mode-toggle');
     if (modeToggle) {
       modeToggle.checked = saneMode;
       modeToggle.addEventListener('change', () => {
-        saneMode = modeToggle.checked;
+        const newSane = modeToggle.checked;
+        renderAll(saneMode);
+        saneMode = newSane;
         try { localStorage.setItem(STORAGE_KEY_SANE, String(saneMode)); } catch (_) {}
-        renderAll();
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            updateAllBarStyles();
+          });
+        });
       });
     }
 
@@ -455,7 +555,7 @@
       sortSelect.addEventListener('change', () => {
         sortMode = sortSelect.value;
         try { localStorage.setItem(STORAGE_KEY_SORT, sortMode); } catch (_) {}
-        renderAll();
+        reorderAndAnimate();
       });
     }
 
