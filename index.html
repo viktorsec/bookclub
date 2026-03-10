@@ -250,6 +250,7 @@
         title: 'Ocean at The End of The Lane',
         number: 5,
         author: 'Neil Gaiman',
+        suggestedBy: 'Laco',
         ratings: [
           { name: 'Andrej', score: 7, max: 10.5 },
           { name: 'Marry', score: 7, max: 10.5 },
@@ -266,6 +267,7 @@
         title: 'Pes na ceste',
         number: 4,
         author: 'Pavel Vilikovský',
+        suggestedBy: 'Simon',
         ratings: [
           { name: 'Laco', score: 7, max: 200 },
           { name: 'Fenes', score: 7, max: 777 },
@@ -281,6 +283,7 @@
         title: 'Babel, or the Necessity of Violence',
         number: 3,
         author: 'R. F. Kuang',
+        suggestedBy: 'Erik',
         ratings: [
           { name: 'Andrej', score: 7, max: 10 },
           { name: 'Viktor', score: 7, max: 11 },
@@ -297,6 +300,7 @@
         title: 'Drive Your Plow Over the Bones of the Dead',
         number: 2,
         author: 'Olga Tokarczuk',
+        suggestedBy: 'Simi',
         ratings: [
           { name: 'Viktor', score: 7, max: 18 },
           { name: 'Katka', score: 7, max: 700 },
@@ -311,6 +315,7 @@
         title: 'Kite Runner',
         number: 1,
         author: 'Khaled Hosseini',
+        suggestedBy: 'Marry',
         ratings: [
           { name: 'Simi', score: 7, max: 15 },
           { name: 'Erik', score: 7, max: 17 },
@@ -373,11 +378,13 @@
 
     function renderBook(book, sane, rank) {
       const ratingsToShow = getSortedRatings(book.ratings);
+      const suggestedBy = book.suggestedBy || '';
       const rows = ratingsToShow.map(({ name, score, max }) => {
         const { barWidth, fillWidth } = getWidths(score, max, sane);
+        const isSuggester = suggestedBy && name === suggestedBy;
         return `
           <div class="rating-row">
-            <span class="name">${name}</span>
+            <span class="name">${name}${isSuggester ? ' ✦' : ''}</span>
             <div class="meter-cell">
               <div class="meter-wrap" style="--bar-width: ${barWidth}px; --score-width: ${fillWidth}px;">
                 <div class="meter-fill"></div>
