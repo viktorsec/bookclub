@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PK Bookclub Ratings</title>
+  <meta name="description" content="Our bookclub ratings — we all gave 7, but out of very different scales.">
+  <!-- Open Graph / Facebook, Slack, etc. -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="PK Bookclub Ratings">
+  <meta property="og:description" content="Our bookclub ratings — we all gave 7, but out of very different scales.">
+  <meta property="og:image" content="thumb.png">
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="PK Bookclub Ratings">
+  <meta name="twitter:description" content="Our bookclub ratings — we all gave 7, but out of very different scales.">
+  <meta name="twitter:image" content="thumb.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #1a1614;
+      --paper: #f5f0e8;
+      --accent: #c45c3e;
+      --fill: #2d5a4a;
+      --track: #e0d9ce;
+      --muted: #5a534d;
+      --score-width: 84px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --ink: #e8e4de;
+        --paper: #1a1614;
+        --fill: #3d6b5a;
+        --track: #2d2a26;
+        --muted: #9a948a;
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: 'DM Sans', sans-serif;
+      padding: 2rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 600;
+      font-size: clamp(1.5rem, 3.5vw, 2rem);
+      margin: 0 auto 0.25rem auto;
+      text-align: center;
+      max-width: 24ch;
+    }
+
+    .book-subtitle {
+      font-style: italic;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1rem;
+      color: var(--muted);
+      margin: 0 auto 1rem auto;
+      text-align: center;
+    }
+
+    .page-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 600;
+      font-size: clamp(1.25rem, 3vw, 1.5rem);
+      color: var(--muted);
+      margin: 0 0 2rem 0;
+      text-align: center;
+    }
+
+    .mode-toggle {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin: -0.5rem 0 1.75rem 0;
+    }
+
+    .mode-toggle label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+    }
+
+    .mode-toggle input[type="checkbox"] {
+      accent-color: var(--fill);
+      width: 1rem;
+      height: 1rem;
+    }
+
+    .book-number {
+      font-size: 0.875rem;
+      color: var(--muted);
+      margin: 0 0 1rem 0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .book-section {
+      width: 100%;
+      max-width: 420px;
+      margin-bottom: 3rem;
+    }
+
+    .book-section:last-of-type {
+      margin-bottom: 0;
+    }
+
+    .ratings {
+      width: 100%;
+    }
+
+    .rating-row {
+      display: grid;
+      grid-template-columns: 5.5rem minmax(0, 280px) 3.5rem;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 0.85rem;
+    }
+
+    .name {
+      font-weight: 500;
+      font-size: 0.95rem;
+    }
+
+    .meter-cell {
+      min-width: 0;
+      overflow: visible;
+    }
+
+    .meter-wrap {
+      position: relative;
+      width: var(--bar-width);
+      height: 1.25rem;
+      background: var(--track);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-left: auto;
+    }
+
+    .meter-fill {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: var(--score-width);
+      background: var(--fill);
+      border-radius: 999px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.15);
+    }
+
+    .value {
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      position: relative;
+      z-index: 1;
+    }
+
+    .average-row {
+      border-top: 1px solid var(--track);
+      margin-top: 0.5rem;
+      padding-top: 0.75rem;
+    }
+
+    .average-row .name {
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    .average-row .medal {
+      display: inline-block;
+      width: 0.6rem;
+      height: 0.6rem;
+      margin-left: 0.25rem;
+      vertical-align: middle;
+      object-fit: contain;
+    }
+
+  </style>
+</head>
+<body>
+  <h1 class="page-title">PK Bookclub Ratings</h1>
+  <div class="mode-toggle">
+    <label for="mode-toggle">
+      <input type="checkbox" id="mode-toggle">
+      <span>Sane mode</span>
+    </label>
+  </div>
+  <div id="books"></div>
+
+  <script>
+    const SCORE_WIDTH = 84;       // width of the filled score in fun mode
+    const SANE_TOTAL_WIDTH = 260; // fixed total width in sane mode
+
+    const books = [
+      {
+        title: 'Ocean at The End of The Lane',
+        number: 5,
+        author: 'Neil Gaiman',
+        ratings: [
+          { name: 'Andrej', score: 7, max: 10.5 },
+          { name: 'Marry', score: 7, max: 10.5 },
+          { name: 'Viktor', score: 7, max: 9 },
+          { name: 'Erik', score: 7, max: 9.5 },
+          { name: 'Laco', score: 7, max: 10 },
+          { name: 'Viliam', score: 7, max: 13 },
+          { name: 'Simi', score: 7, max: 9 },
+          { name: 'Simon', score: 7, max: 12 },
+          { name: 'Katka', score: 7, max: 14 },
+        ],
+      },
+      {
+        title: 'Pes na ceste',
+        number: 4,
+        author: 'Pavel Vilikovský',
+        ratings: [
+          { name: 'Laco', score: 7, max: 200 },
+          { name: 'Fenes', score: 7, max: 777 },
+          { name: 'Katka', score: 7, max: 70 },
+          { name: 'Solos', score: 7, max: 10 },
+          { name: 'Maria', score: 7, max: 11 },
+          { name: 'Simon', score: 7, max: 9 },
+          { name: 'Tomas', score: 7, max: 8 },
+          { name: 'Simi', score: 7, max: 17 },
+        ],
+      },
+      {
+        title: 'Babel, or the Necessity of Violence',
+        number: 3,
+        author: 'R. F. Kuang',
+        ratings: [
+          { name: 'Andrej', score: 7, max: 10 },
+          { name: 'Viktor', score: 7, max: 11 },
+          { name: 'Simi', score: 7, max: 14 },
+          { name: 'Katka', score: 7, max: 21 },
+          { name: 'Simon', score: 7, max: 38 },
+          { name: 'Erik', score: 7, max: 9 },
+          { name: 'Pajtlas', score: 7, max: 17 },
+          { name: 'Marry', score: 7, max: 14 },
+          { name: 'Lacop', score: 7, max: 13 },
+        ],
+      },
+      {
+        title: 'Drive Your Plow Over the Bones of the Dead',
+        number: 2,
+        author: 'Olga Tokarczuk',
+        ratings: [
+          { name: 'Viktor', score: 7, max: 18 },
+          { name: 'Katka', score: 7, max: 700 },
+          { name: 'Laco', score: 7, max: 23 },
+          { name: 'Simon', score: 7, max: 28 },
+          { name: 'Erik', score: 7, max: 12 },
+          { name: 'Marry', score: 7, max: 12 },
+          { name: 'Simi', score: 7, max: 7 },
+        ],
+      },
+      {
+        title: 'Kite Runner',
+        number: 1,
+        author: 'Khaled Hosseini',
+        ratings: [
+          { name: 'Simi', score: 7, max: 15 },
+          { name: 'Erik', score: 7, max: 17 },
+          { name: 'Simon', score: 7, max: 10 },
+          { name: 'Marry', score: 7, max: 8 },
+          { name: 'Viktor', score: 7, max: 11 },
+        ],
+      },
+    ];
+
+    let saneMode = false;
+
+    function getWidths(score, max, sane) {
+      if (sane) {
+        const barWidth = SANE_TOTAL_WIDTH;
+        const fillWidth = (score / max) * barWidth;
+        return {
+          barWidth,
+          fillWidth,
+        };
+      }
+
+      const barWidth = (max / score) * SCORE_WIDTH;
+      const fillWidth = SCORE_WIDTH;
+      return {
+        barWidth,
+        fillWidth,
+      };
+    }
+
+    function getBookMeanFraction(book) {
+      const n = book.ratings.length;
+      return n > 0 ? book.ratings.reduce((sum, { score, max }) => sum + score / max, 0) / n : 0;
+    }
+
+    function renderBook(book, sane, rank) {
+      const rows = book.ratings.map(({ name, score, max }) => {
+        const { barWidth, fillWidth } = getWidths(score, max, sane);
+        return `
+          <div class="rating-row">
+            <span class="name">${name}</span>
+            <div class="meter-cell">
+              <div class="meter-wrap" style="--bar-width: ${barWidth}px; --score-width: ${fillWidth}px;">
+                <div class="meter-fill"></div>
+              </div>
+            </div>
+            <span class="value">7/${max}</span>
+          </div>
+        `;
+      }).join('');
+
+      const n = book.ratings.length;
+      const meanFraction = getBookMeanFraction(book);
+      const effectiveMax = n > 0 ? 7 / meanFraction : 0;
+      const avgBarWidth = SANE_TOTAL_WIDTH;
+      const avgFillWidth = meanFraction * avgBarWidth;
+
+      const medalImg = rank === 1 ? 'gold.png' : rank === 2 ? 'silver.png' : rank === 3 ? 'bronze.png' : '';
+      const medalHtml = medalImg ? ` <img src="${medalImg}" alt="" class="medal" aria-hidden="true">` : '';
+
+      const averageRow = `
+        <div class="rating-row average-row">
+          <span class="name">Average${medalHtml}</span>
+          <div class="meter-cell">
+            <div class="meter-wrap" style="--bar-width: ${avgBarWidth}px; --score-width: ${avgFillWidth}px;">
+              <div class="meter-fill"></div>
+            </div>
+          </div>
+          <span class="value">7/${effectiveMax.toFixed(1)}</span>
+        </div>
+      `;
+
+      return `
+        <section class="book-section">
+          <h1>${book.title}</h1>
+          <p class="book-subtitle">${book.author}</p>
+          <p class="book-number">Book ${book.number}</p>
+          <div class="ratings">${rows}${averageRow}</div>
+        </section>
+      `;
+    }
+
+    function renderAll() {
+      const sane = saneMode;
+      const withMean = books.map(book => ({ book, mean: getBookMeanFraction(book) }));
+      withMean.sort((a, b) => b.mean - a.mean);
+      const rankByBook = new Map();
+      withMean.forEach(({ book }, i) => {
+        if (i < 3) rankByBook.set(book, i + 1);
+      });
+      document.getElementById('books').innerHTML = books
+        .map(book => renderBook(book, sane, rankByBook.get(book)))
+        .join('');
+    }
+
+    const modeToggle = document.getElementById('mode-toggle');
+    if (modeToggle) {
+      modeToggle.checked = saneMode;
+      modeToggle.addEventListener('change', () => {
+        saneMode = modeToggle.checked;
+        renderAll();
+      });
+    }
+
+    renderAll();
+  </script>
+</body>
+</html>
