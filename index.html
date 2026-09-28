@@ -250,6 +250,20 @@
 
     const books = [
       {
+        title: 'UNSONG',
+        number: 6,
+        author: 'Scott Alexander',
+        suggestedBy: 'Viktor',
+        ratings: [
+          { name: 'Viktor', score: 7, max: 10.5 },
+          { name: 'Laco', score: 7, max: 10.5 },
+          { name: 'Erik', score: 7, max: 8.5 },
+          { name: 'Marry', score: 7, max: 11 },
+          { name: 'Viktor2', score: 7, max: 50 },
+          { name: 'KatkaS', score: 7, max: 12 },
+        ],
+      },
+      {
         title: 'Ocean at The End of The Lane',
         number: 5,
         author: 'Neil Gaiman',
@@ -260,10 +274,10 @@
           { name: 'Viktor', score: 7, max: 9 },
           { name: 'Erik', score: 7, max: 9.5 },
           { name: 'Laco', score: 7, max: 10 },
-          { name: 'Viliam', score: 7, max: 13 },
+          { name: 'Viktor2', score: 7, max: 13 },
           { name: 'Simi', score: 7, max: 9 },
           { name: 'Simon', score: 7, max: 12 },
-          { name: 'Katka', score: 7, max: 14 },
+          { name: 'KatkaP', score: 7, max: 14 },
         ],
       },
       {
@@ -274,7 +288,7 @@
         ratings: [
           { name: 'Laco', score: 7, max: 200 },
           { name: 'Fenes', score: 7, max: 777 },
-          { name: 'Katka', score: 7, max: 70 },
+          { name: 'KatkaP', score: 7, max: 70 },
           { name: 'Solos', score: 7, max: 10 },
           { name: 'Maria', score: 7, max: 11 },
           { name: 'Simon', score: 7, max: 9 },
@@ -291,7 +305,7 @@
           { name: 'Andrej', score: 7, max: 10 },
           { name: 'Viktor', score: 7, max: 11 },
           { name: 'Simi', score: 7, max: 14 },
-          { name: 'Katka', score: 7, max: 21 },
+          { name: 'KatkaP', score: 7, max: 21 },
           { name: 'Simon', score: 7, max: 38 },
           { name: 'Erik', score: 7, max: 9 },
           { name: 'Pajtlas', score: 7, max: 17 },
@@ -306,7 +320,7 @@
         suggestedBy: 'Simi',
         ratings: [
           { name: 'Viktor', score: 7, max: 18 },
-          { name: 'Katka', score: 7, max: 700 },
+          { name: 'KatkaP', score: 7, max: 700 },
           { name: 'Laco', score: 7, max: 23 },
           { name: 'Simon', score: 7, max: 28 },
           { name: 'Erik', score: 7, max: 12 },
@@ -393,14 +407,13 @@
                 <div class="meter-fill"></div>
               </div>
             </div>
-            <span class="value">7/${max}</span>
+            <span class="value">${score}/${max}</span>
           </div>
         `;
       }).join('');
 
-      const n = book.ratings.length;
       const meanFraction = getBookMeanFraction(book);
-      const effectiveMax = n > 0 ? 7 / meanFraction : 0;
+      const effectiveMax = meanFraction > 0 ? 7 / meanFraction : 0;
       const avgBarWidth = SANE_TOTAL_WIDTH;
       const avgFillWidth = meanFraction * avgBarWidth;
 
