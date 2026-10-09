@@ -56,6 +56,62 @@
       justify-content: center;
     }
 
+    .current-book {
+      width: calc(100% + 3rem);
+      margin: -2rem -1.5rem 2.5rem;
+      padding: 1.5rem;
+      background: var(--fill);
+      color: #f5f0e8;
+      text-align: center;
+    }
+
+    .current-book-label {
+      margin: 0 0 0.5rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .current-book h2 {
+      max-width: 32ch;
+      margin: 0 auto;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1.5rem, 4vw, 2rem);
+      font-weight: 600;
+      line-height: 1.2;
+    }
+
+    .current-book-author {
+      margin: 0.5rem 0 0.75rem;
+      font-size: 0.95rem;
+    }
+
+    .current-book-links {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.25rem 1.5rem;
+    }
+
+    .current-book-links a {
+      display: inline-block;
+      padding: 0.5rem 0;
+      color: inherit;
+      font-size: 0.85rem;
+      text-underline-offset: 0.2em;
+    }
+
+    .current-book-links a:hover {
+      text-decoration-thickness: 2px;
+    }
+
+    .current-book-links a:focus-visible {
+      outline: 2px solid currentColor;
+      outline-offset: 4px;
+      border-radius: 2px;
+    }
+
     h1 {
       font-family: 'Cormorant Garamond', serif;
       font-weight: 600;
@@ -225,6 +281,15 @@
   </style>
 </head>
 <body>
+  <aside class="current-book" aria-labelledby="current-book-title">
+    <p class="current-book-label">Currently reading</p>
+    <h2 id="current-book-title" lang="sk">Svetlo z hlbín jáchymovských lágrov</h2>
+    <p class="current-book-author">by Anton Srholec</p>
+    <nav class="current-book-links" aria-label="Current book links">
+      <a href="https://www.goodreads.com/book/show/24272031-svetlo-z-hlb-n-j-chymovsk-ch-l-grov" target="_blank" rel="noopener noreferrer">Goodreads</a>
+      <a href="https://www.martinus.sk/788773-svetlo-z-hlbin-jachymovskych-lagrov/kniha" target="_blank" rel="noopener noreferrer">Martinus</a>
+    </nav>
+  </aside>
   <h1 class="page-title">PK Bookclub</h1>
   <div class="controls">
     <div class="sort-control">
